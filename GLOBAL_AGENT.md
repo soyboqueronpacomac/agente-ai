@@ -1,5 +1,7 @@
 ## Rules
 
+- I'd like us to speak entirely in Spanish.
+
 - Write all code, comments, docs, commits, and tests in Español.
 
 - Write self-documenting code, never add explanatory comments.
