@@ -44,11 +44,14 @@ Skills instalados hoy, su función, y cómo se comportan en cada agente:
 | `create-doc` | Crea o mejora documentación en `docs/` siguiendo la plantilla de `documentation-guidelines.md`. | Skill real, invocación explícita | Prompt personalizado `/create-doc` | Archivo de referencia manual |
 | `handoff` | Compacta la conversación actual en un documento de traspaso para que un agente nuevo continúe el trabajo. | Skill real, invocación explícita | Prompt personalizado `/handoff` | Archivo de referencia manual |
 | `ship` | Encadena `commit` y `push` en un solo flujo (mensaje de commit + push), pidiendo confirmación en cada fase por separado. | Skill real, auto-invocable por descripción | Prompt personalizado `/ship` | Archivo de referencia manual |
+| `kanban-board` | Lista, lee y cierra issues de GitHub del repositorio actual con `gh issue list/view/close`. | Skill real, auto-invocable por descripción | Prompt personalizado `/kanban-board` | Archivo de referencia manual |
+
+`kanban-board` detecta el repositorio automáticamente a partir del remoto `origin` (vía `gh repo view`), así que funciona igual en cualquier proyecto donde se instale, sin editar el skill. Uso: `/kanban-board` sin argumentos lista las issues abiertas; `/kanban-board 42` lee la issue 42 y propone un plan de implementación; al terminar el trabajo, cierra la issue con `gh issue close <número> --comment "Hecho: <resumen>"`. Si se quiere apuntar a un repositorio distinto del actual, se le puede pasar `--repo <owner>/<repo>` a mano.
 
 Cómo se invoca cada uno según el agente:
 
-- **Claude Code**: el skill queda en `~/.claude/skills/<nombre>/SKILL.md`. `commit`, `push`, `create-doc` y `handoff` tienen `disable-model-invocation: true`, así que solo se disparan si el usuario escribe `/<nombre>` literalmente como su mensaje. `ship` no tiene ese campo, así que Claude puede invocarlo también cuando el usuario lo pide en lenguaje natural (p. ej. "sube esto").
-- **Codex**: el archivo queda en `~/.codex/prompts/<nombre>.md`. Codex no tiene sistema de auto-invocación por descripción; el prompt se dispara manualmente con `/<nombre>` en el TUI, para los cinco skills por igual.
+- **Claude Code**: el skill queda en `~/.claude/skills/<nombre>/SKILL.md`. `commit`, `push`, `create-doc` y `handoff` tienen `disable-model-invocation: true`, así que solo se disparan si el usuario escribe `/<nombre>` literalmente como su mensaje. `ship` y `kanban-board` no tienen ese campo, así que Claude puede invocarlos también cuando el usuario lo pide en lenguaje natural (p. ej. "sube esto" o "qué issues hay abiertas").
+- **Codex**: el archivo queda en `~/.codex/prompts/<nombre>.md`. Codex no tiene sistema de auto-invocación por descripción; el prompt se dispara manualmente con `/<nombre>` en el TUI, para los seis skills por igual.
 - **Copilot CLI**: el archivo queda en `~/.copilot/skills/<nombre>.md`, pero Copilot CLI no tiene un mecanismo de invocación automática conocido — hay que indicarle manualmente al agente que lea ese archivo y siga sus instrucciones.
 
 Archivos fuente:
@@ -58,6 +61,7 @@ Archivos fuente:
 - [`create-doc`](../../.agents/skills/create-doc/skill.md)
 - [`handoff`](../../.agents/skills/handoff/skill.md)
 - [`ship`](../../.agents/skills/ship/skill.md)
+- [`kanban-board`](../../.agents/skills/kanban-board/skill.md)
 - Lógica de instalación: [`install.sh`](../../install.sh)
 
 ## ☝️ Casos excepcionales: Cuándo no aplicar esta convención
