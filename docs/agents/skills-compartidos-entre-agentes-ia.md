@@ -10,6 +10,7 @@ Cada skill reutilizable vive como fuente única de verdad en `.agents/skills/<no
 - Añadir un skill nuevo es tan simple como crear una carpeta con un `skill.md` y volver a ejecutar `./install.sh`; no hay que tocar la lógica de instalación.
 - La instalación es selectiva: si un agente no está presente en la máquina, `install.sh` no crea nada para él.
 - Cada agente recibe el skill en el formato y ruta que realmente entiende (skill real, prompt personalizado, o archivo de referencia), en vez de forzar el mismo mecanismo en los tres.
+- Puedes elegir por skill si permites invocación por el modelo (`disable-model-invocation` ausente) o si exiges que el usuario escriba el comando literal (`disable-model-invocation: true`), según cuán sensible sea la acción.
 
 ## 👀 Ejemplos
 
@@ -42,11 +43,12 @@ Skills instalados hoy, su función, y cómo se comportan en cada agente:
 | `push` | Sube la rama actual al remoto tras revisar estado/upstream/divergencia, avisando si el destino es `main`/`master`. | Skill real, invocación explícita | Prompt personalizado `/push` | Archivo de referencia manual |
 | `create-doc` | Crea o mejora documentación en `docs/` siguiendo la plantilla de `documentation-guidelines.md`. | Skill real, invocación explícita | Prompt personalizado `/create-doc` | Archivo de referencia manual |
 | `handoff` | Compacta la conversación actual en un documento de traspaso para que un agente nuevo continúe el trabajo. | Skill real, invocación explícita | Prompt personalizado `/handoff` | Archivo de referencia manual |
+| `ship` | Encadena `commit` y `push` en un solo flujo (mensaje de commit + push), pidiendo confirmación en cada fase por separado. | Skill real, auto-invocable por descripción | Prompt personalizado `/ship` | Archivo de referencia manual |
 
 Cómo se invoca cada uno según el agente:
 
-- **Claude Code**: el skill queda en `~/.claude/skills/<nombre>/SKILL.md`. Si `disable-model-invocation` no está activo, Claude puede auto-invocarlo según la descripción; los cuatro skills actuales lo tienen activo, así que hay que escribir `/<nombre>` explícitamente.
-- **Codex**: el archivo queda en `~/.codex/prompts/<nombre>.md`. Codex no tiene sistema de auto-invocación por descripción; el prompt se dispara manualmente con `/<nombre>` en el TUI.
+- **Claude Code**: el skill queda en `~/.claude/skills/<nombre>/SKILL.md`. `commit`, `push`, `create-doc` y `handoff` tienen `disable-model-invocation: true`, así que solo se disparan si el usuario escribe `/<nombre>` literalmente como su mensaje. `ship` no tiene ese campo, así que Claude puede invocarlo también cuando el usuario lo pide en lenguaje natural (p. ej. "sube esto").
+- **Codex**: el archivo queda en `~/.codex/prompts/<nombre>.md`. Codex no tiene sistema de auto-invocación por descripción; el prompt se dispara manualmente con `/<nombre>` en el TUI, para los cinco skills por igual.
 - **Copilot CLI**: el archivo queda en `~/.copilot/skills/<nombre>.md`, pero Copilot CLI no tiene un mecanismo de invocación automática conocido — hay que indicarle manualmente al agente que lea ese archivo y siga sus instrucciones.
 
 Archivos fuente:
@@ -55,12 +57,18 @@ Archivos fuente:
 - [`push`](../../.agents/skills/push/skill.md)
 - [`create-doc`](../../.agents/skills/create-doc/skill.md)
 - [`handoff`](../../.agents/skills/handoff/skill.md)
+- [`ship`](../../.agents/skills/ship/skill.md)
 - Lógica de instalación: [`install.sh`](../../install.sh)
 
 ## ☝️ Casos excepcionales: Cuándo no aplicar esta convención
 
 - Cuando la seguridad del skill dependa del campo `allowed-tools`, ten en cuenta que esa restricción es específica de Claude Code: Codex y Copilot leen el mismo archivo como texto plano y no la interpretan.
+- Cuando quieras que el agente pueda disparar el skill a partir de una petición en lenguaje natural (sin que el usuario escriba el comando literal), no le pongas `disable-model-invocation: true`.
 
 ### 🥽 Ejemplo de caso excepcional
 
 El skill `push` está sandboxeado en Claude Code con `allowed-tools: Bash(git *)`, así que ahí Claude no puede ejecutar nada fuera de comandos `git`. Ese mismo archivo, corriendo como prompt personalizado en Codex, no tiene ese sandboxing — `allowed-tools` no es un campo que Codex interprete. Por eso las reglas de seguridad del skill (pedir confirmación, no forzar sin confirmar, avisar en ramas protegidas) están escritas también como texto explícito en el cuerpo del documento, no delegadas solo al campo `allowed-tools`.
+
+### 🥽 `disable-model-invocation` bloquea también al propio agente
+
+`disable-model-invocation: true` no solo impide la auto-invocación por descripción: en Claude Code, si el propio agente intenta invocar ese skill a través del Skill tool porque el usuario se lo pidió en lenguaje natural ("usa /commit"), la llamada puede fallar con `Skill <nombre> cannot be used with Skill tool due to disable-model-invocation`. La única invocación fiable en ese caso es que el usuario escriba `/<nombre>` literalmente como su mensaje. Por eso se creó `ship`: un skill sin ese campo, para los flujos que sí queremos poder disparar por lenguaje natural sin perder las confirmaciones internas.
