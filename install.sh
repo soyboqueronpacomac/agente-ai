@@ -39,6 +39,64 @@ for target in "${TARGETS[@]}"; do
   fi
 done
 
+SKILLS_DIR="$SCRIPT_DIR/.agents/skills"
+
+symlink_con_backup() {
+  local origen="$1" destino="$2"
+  local destino_dir
+  destino_dir="$(dirname "$destino")"
+  mkdir -p "$destino_dir"
+
+  if [ -L "$destino" ] && [ "$(readlink "$destino")" = "$origen" ]; then
+    echo "OK (ya configurado): $destino"
+    return 0
+  fi
+
+  if [ -e "$destino" ] || [ -L "$destino" ]; then
+    local backup="$destino.bak.$(date +%s)"
+    mv "$destino" "$backup"
+    echo "Aviso: se encontró configuración previa, respaldada en $backup"
+  fi
+
+  if ln -sf "$origen" "$destino" 2>/dev/null; then
+    echo "OK (symlink): $destino -> $origen"
+  elif cp "$origen" "$destino" 2>/dev/null; then
+    echo "OK (copia, no se pudo symlinkar): $destino"
+  else
+    echo "Error: no se pudo instalar en $destino" >&2
+  fi
+}
+
+install_skills() {
+  if [ ! -d "$SKILLS_DIR" ]; then
+    return 0
+  fi
+
+  local skill_dir nombre origen
+  for skill_dir in "$SKILLS_DIR"/*/; do
+    [ -d "$skill_dir" ] || continue
+    nombre="$(basename "$skill_dir")"
+    origen="$skill_dir/skill.md"
+    [ -f "$origen" ] || continue
+
+    if command -v claude >/dev/null 2>&1; then
+      symlink_con_backup "$origen" "$HOME/.claude/skills/$nombre/SKILL.md"
+    fi
+
+    if command -v codex >/dev/null 2>&1; then
+      symlink_con_backup "$origen" "$HOME/.codex/prompts/$nombre.md"
+      echo "Aviso: Codex expone esto como prompt personalizado (/$nombre), no como skill con auto-invocación por descripción"
+    fi
+
+    if command -v copilot >/dev/null 2>&1; then
+      symlink_con_backup "$origen" "$HOME/.copilot/skills/$nombre.md"
+      echo "Aviso: Copilot CLI no tiene invocación automática de skills conocida; este archivo queda como referencia manual"
+    fi
+  done
+}
+
+install_skills
+
 LOCAL_BIN="$HOME/.local/bin"
 
 detect_os() {
