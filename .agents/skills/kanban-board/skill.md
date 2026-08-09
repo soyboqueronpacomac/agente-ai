@@ -1,6 +1,6 @@
 ---
 name: kanban-board
-description: Gestiona el tablero kanban del repositorio actual. Lista, lee y cierra issues de GitHub.
+description: Gestiona el tablero kanban del repositorio actual. Lista, lee, crea y cierra issues de GitHub.
 ---
 
 # Tablero Kanban
@@ -17,6 +17,11 @@ gh issue list
 Ver una issue concreta:
 ```bash
 gh issue view <número>
+```
+
+Crear una issue nueva:
+```bash
+gh issue create --title <título> --body <descripción>
 ```
 
 Cerrar una issue:
@@ -37,6 +42,13 @@ Lista todas las issues abiertas y muestra un resumen al usuario.
 3. **Presenta un plan de implementación** al usuario con:
    - Resumen de lo que pide la issue.
    - Posibles riesgos o preguntas abiertas.
+
+### Al pedir crear una issue nueva
+
+1. Redacta un título breve y una descripción (contexto, qué se pide, criterios de aceptación si aplica) a partir de lo que pida el usuario o de la conversación actual.
+2. Propón el título y la descripción al usuario y pide confirmación explícita antes de crearla.
+3. Tras la confirmación, ejecuta `gh issue create --title <título> --body <descripción>` (añade `--label`/`--assignee`/`--milestone` solo si el usuario los pidió).
+4. Informa del número y la URL de la issue creada.
 
 ### Al terminar el trabajo de una issue
 
