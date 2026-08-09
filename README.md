@@ -28,3 +28,5 @@ Cada carpeta en `.agents/skills/<nombre>/skill.md` se instala automáticamente, 
 - **Copilot CLI**: symlink a `~/.copilot/skills/<nombre>.md`. No existe invocación automática conocida; queda solo como referencia que hay que apuntarle manualmente al agente.
 
 Si añades un nuevo skill en `.agents/skills/`, basta con volver a ejecutar `./install.sh`.
+
+Documentación detallada de cada skill (función y cómo se invoca en cada agente): [`docs/agents/skills-compartidos-entre-agentes-ia.md`](docs/agents/skills-compartidos-entre-agentes-ia.md).
