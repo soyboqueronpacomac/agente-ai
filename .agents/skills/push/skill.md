@@ -14,8 +14,8 @@ Sube la rama actual al remoto, revisando primero el estado real del repositorio 
 
 - Rama actual: !`git branch --show-current`
 - Estado respecto al remoto: !`git status -sb`
-- Upstream configurado: !`git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null || echo "sin upstream configurado"`
-- Commits sin subir: !`git log @{u}.. --oneline 2>/dev/null || git log --oneline -10`
+- Upstream configurado: !`git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null || echo "sin upstream configurado"`
+- Commits sin subir: !`git log '@{u}..' --oneline 2>/dev/null || git log --oneline -10`
 
 ## Rama de destino
 
